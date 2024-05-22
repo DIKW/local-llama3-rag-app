@@ -62,7 +62,7 @@ def main():
 
     for message in st.session_state.messages:
         avatar = "🤖" if message["role"] == "assistant" else "😎"
-        with message_container.chat_message(message["role"], avatar="🤖"):
+        with message_container.chat_message(message["role"], avatar=avatar):
             st.markdown(message["content"])
 
     if prompt := st.chat_input("Enter a prompt here..."):
@@ -71,7 +71,10 @@ def main():
 
             message_container.chat_message("user", avatar="😎").markdown(prompt)
 
-            with message_container.chat_message("assistant", avatar="🤖"):
+            with message_container.chat_message(
+                "assistant",
+                avatar="https://raw.githubusercontent.com/DIKW/local-llama3-rag-app/main/assets/dikw-bot.ico",
+            ):
                 with st.spinner("model working..."):
                     stream = client.chat.completions.create(
                         model=selected_model,

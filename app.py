@@ -64,11 +64,11 @@ st.caption(
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# # Ask a question about the webpage
-# question = st.text_input("Stel een vraag aan de documenten")
+# Ask a question about the webpage
+question = st.text_input("Stel een vraag aan de documenten")
 
-# # Chat with the documents
-# if question:
-#     result = qa({"question": question})
-#     st.write(result["answer"])
+# Chat with the documents
+if question:
+    result = qa({"question": question})
+    st.write(result["answer"])
 
