@@ -16,7 +16,7 @@ add_logo("assets/logo-small.png", height=100)
 
 
 def main():
-    material_icon("settings")
+    material_icon("instellingen")
     st.subheader("Model Management", divider="orange", anchor=False)
 
     st.subheader("Download Models", anchor=False)

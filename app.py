@@ -8,6 +8,8 @@ from langchain_community.chat_models import ChatOllama
 from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import OllamaEmbeddings
 
+from utilities.rag import StreamHandler, get_custom_rag_chain
+
 # streamlit has logging available
 # set streamlit logger
 import logging
@@ -53,7 +55,10 @@ from langchain.chains import ConversationalRetrievalChain
 
 # retriever=faiss_vector_db.as_retriever()
 
-qa = ConversationalRetrievalChain.from_llm(llm, retriever=retriever, memory=memory)
+# qa = ConversationalRetrievalChain.from_llm(llm, retriever=retriever, memory=memory)
+
+# setup rag chain
+qa = get_custom_rag_chain("wiki_elephants")
 
 st.title("Chat with your documents using Llama-3 and RAG")
 st.caption(
@@ -71,4 +76,3 @@ question = st.text_input("Stel een vraag aan de documenten")
 if question:
     result = qa({"question": question})
     st.write(result["answer"])
-

@@ -31,3 +31,23 @@ def material_icon(name: str):
         f'<span class="material-symbols-outlined">{name}</span>',
         unsafe_allow_html=True,
     )
+
+
+def get_bot_avatar():
+    """
+    Returns the avatar of the bot.
+
+    :return: The avatar of the bot.
+    """
+
+    return "https://raw.githubusercontent.com/DIKW/local-llama3-rag-app/main/assets/dikw-chatbot-2.png"
+
+
+def get_human_avatar():
+    """
+    Returns the avatar of the human.
+
+    :return: The avatar of the human.
+    """
+
+    return "https://raw.githubusercontent.com/DIKW/local-llama3-rag-app/main/assets/person.png"

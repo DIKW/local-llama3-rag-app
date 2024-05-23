@@ -1,8 +1,4 @@
 import streamlit as st
-import requests
-import base64
-from PIL import Image
-from io import BytesIO
 import json
 import ollama
 from utilities.icon import material_icon
@@ -17,19 +13,6 @@ st.set_page_config(
 )
 
 add_logo("assets/logo-small.png", height=100)
-
-def img_to_base64(image):
-    """
-    Convert an image to base64 format.
-
-    Args:
-        image: PIL.Image - The image to be converted.
-    Returns:
-        str: The base64 encoded image.
-    """
-    buffered = BytesIO()
-    image.save(buffered, format="PNG")
-    return base64.b64encode(buffered.getvalue()).decode()
 
 
 def get_allowed_model_names(models_info: dict) -> tuple:
@@ -46,7 +29,7 @@ def get_allowed_model_names(models_info: dict) -> tuple:
 
 def main():
     material_icon("forum")
-    st.subheader("Semantic search", divider="orange", anchor=False)
+    st.subheader("Semantisch zoeken", divider="orange", anchor=False)
 
     models_info = ollama.list()
     available_models = get_allowed_model_names(models_info)

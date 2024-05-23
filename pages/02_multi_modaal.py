@@ -5,7 +5,7 @@ from PIL import Image
 from io import BytesIO
 import json
 import ollama
-from utilities.icon import material_icon
+from utilities.icon import material_icon, get_bot_avatar, get_human_avatar
 
 from streamlit_extras.app_logo import add_logo
 
@@ -141,7 +141,11 @@ def main():
 
         if uploaded_file is not None:
             for message in st.session_state.chats:
-                avatar = "🌋" if message["role"] == "assistant" else "🫠"
+                avatar = (
+                    get_bot_avatar()
+                    if message["role"] == "assistant"
+                    else get_human_avatar()
+                )
                 with container2.chat_message(message["role"], avatar=avatar):
                     if message["role"] == "user":
                         st.markdown(message["content"])
@@ -152,7 +156,7 @@ def main():
                 "Question about the image...", key="chat_input"
             ):
                 st.session_state.chats.append({"role": "user", "content": user_input})
-                container2.chat_message("user", avatar="🫠").markdown(user_input)
+                container2.chat_message("user", avatar=get_human_avatar()).markdown(user_input)
 
                 image_base64 = img_to_base64(image)
                 API_URL = "http://localhost:11434/api/generate"
@@ -166,7 +170,7 @@ def main():
                     "images": [image_base64],
                 }
 
-                with container2.chat_message("assistant", avatar="🌋"):
+                with container2.chat_message("assistant", avatar=get_bot_avatar():
                     with st.spinner(":blue[processing...]"):
                         response = requests.post(API_URL, json=data, headers=headers)
                     if response.status_code == 200:
