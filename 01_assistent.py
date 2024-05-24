@@ -3,10 +3,20 @@ import ollama
 import streamlit as st
 from openai import OpenAI
 
-from utilities.icon import material_icon, get_bot_avatar, get_human_avatar
+from utilities.icon import (
+    get_material_image,
+    material_icon,
+    get_bot_avatar,
+    get_human_avatar,
+)
 from streamlit_extras.app_logo import add_logo
 
-from utilities.rag import StreamHandler, get_custom_rag_chain
+from utilities.rag import (
+    StreamHandler,
+    get_contexts,
+    get_custom_rag_chain,
+    set_new_context,
+)
 
 st.set_page_config(
     page_title="AI assistent",
@@ -14,8 +24,6 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
-
-add_logo("assets/logo-small.png", height=100)
 
 
 def extract_model_names(models_info: list) -> tuple:
@@ -31,37 +39,15 @@ def extract_model_names(models_info: list) -> tuple:
     return tuple(model["name"] for model in models_info["models"])
 
 
-def get_contexts() -> tuple:
-    """
-    Returns the contexts available in the system.
-
-    :return: A tuple containing the contexts.
-    """
-    # we start with a default "free format" context plus we add  all contexts available in the context folder
-    contexts = ["free format"]
-    # get all sub directory names of the directotry contexts
-    context_folders = os.listdir("./contexts")
-    # add all sub directory names to the contexts list
-    contexts.extend(context_folders)
-
-    return tuple(contexts)
-
-
-def set_new_context():
-    """
-    Clears the chat history.
-    """
-    # set new context to True
-    st.session_state.new_context = True
-    return
-
-
 def main():
     """
     The main function that runs the application.
     """
 
-    material_icon("chat_bubble")
+    add_logo("assets/logo-small.png", height=150)
+    # st.logo("./assets/logo.png", link="https://www.dikw.com/")
+
+    get_material_image("chat_bubble", width=50)
 
     st.subheader("Chat assistent", divider="orange", anchor=False)
 
@@ -79,7 +65,10 @@ def main():
 
         if available_models:
             selected_model = st.selectbox(
-                "Pick a model available on your system ↓", available_models
+                "Kies een taal model dat beschikbaar is voor jou. ↓",
+                available_models,
+                index=1,
+                help="Er zijn verschillende  grote taal modellen beschikbaar, selecteer hier een model dat voor deze toepassing geschikt is.",
             )
 
         else:
@@ -94,6 +83,7 @@ def main():
             contexts,
             key="context",
             on_change=set_new_context,
+            help="Kies een context waarmee je wilt chatten, of kies free format voor een vrije chat. De contexten zijn gebaseerd op documenten die zijn geladen die over een speciefiek onderwerp gaan.",
         )
 
     # setup message container
@@ -158,18 +148,13 @@ def main():
                     response = st.write_stream(stream)
 
                 else:
-                    # use the custom rag chain
-                    # setup the callback
-                    # callback = StreamHandler(st.empty())
                     with st.spinner("model working..."):
-                        stream = qa_client({"question": prompt})  # , callback=callback)
+                        stream = qa_client.stream(
+                            {"question": prompt}
+                        )  # , callback=callback)
                         # print(response)
-                    response = st.write(stream["answer"])
-                    # answer = response["answer"]
-                    # message_container.chat_message(
-                    #     "assistant",
-                    #     avatar=get_bot_avatar(),
-                    # ).markdown(answer)
+                    response = st.write_stream(stream)
+
             # container
             st.session_state.messages.append({"role": "assistant", "content": response})
 

@@ -5,7 +5,7 @@ from PIL import Image
 from io import BytesIO
 import json
 import ollama
-from utilities.icon import material_icon, get_bot_avatar, get_human_avatar
+from utilities.icon import get_material_image, material_icon, get_bot_avatar, get_human_avatar
 
 from streamlit_extras.app_logo import add_logo
 
@@ -15,8 +15,6 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
-
-add_logo("assets/logo-small.png", height=100)
 
 
 def img_to_base64(image):
@@ -46,7 +44,11 @@ def get_allowed_model_names(models_info: dict) -> tuple:
 
 
 def main():
-    material_icon("forum")
+    add_logo("assets/logo-small.png", height=150)
+
+    # material_icon("forum")
+    get_material_image("forum", width=50)
+
     st.subheader("LLaVA 1.6 Playground", divider="orange", anchor=False)
 
     models_info = ollama.list()
@@ -156,7 +158,9 @@ def main():
                 "Question about the image...", key="chat_input"
             ):
                 st.session_state.chats.append({"role": "user", "content": user_input})
-                container2.chat_message("user", avatar=get_human_avatar()).markdown(user_input)
+                container2.chat_message("user", avatar=get_human_avatar()).markdown(
+                    user_input
+                )
 
                 image_base64 = img_to_base64(image)
                 API_URL = "http://localhost:11434/api/generate"
@@ -170,7 +174,7 @@ def main():
                     "images": [image_base64],
                 }
 
-                with container2.chat_message("assistant", avatar=get_bot_avatar():
+                with container2.chat_message("assistant", avatar=get_bot_avatar()):
                     with st.spinner(":blue[processing...]"):
                         response = requests.post(API_URL, json=data, headers=headers)
                     if response.status_code == 200:

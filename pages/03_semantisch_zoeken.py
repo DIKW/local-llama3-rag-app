@@ -1,9 +1,18 @@
 import streamlit as st
 import json
 import ollama
-from utilities.icon import material_icon
+from utilities.icon import (
+    get_bot_avatar,
+    get_human_avatar,
+    get_material_image,
+    material_icon,
+)
 
 from streamlit_extras.app_logo import add_logo
+
+from utilities.rag import get_contexts, set_new_context
+from utilities.rag import get_vector_db
+
 
 st.set_page_config(
     page_title="Semantic Search Playground",
@@ -12,14 +21,12 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-add_logo("assets/logo-small.png", height=100)
-
 
 def get_allowed_model_names(models_info: dict) -> tuple:
     """
     Returns a tuple containing the names of the allowed models.
     """
-    allowed_models = ["bakllava:latest", "llava:latest"]
+    allowed_models = ["llama3:latest", "llava:latest"]
     return tuple(
         model
         for model in allowed_models
@@ -27,159 +34,130 @@ def get_allowed_model_names(models_info: dict) -> tuple:
     )
 
 
+def extract_model_names(models_info: list) -> tuple:
+    """
+    Extracts the model names from the models information.
+
+    :param models_info: A dictionary containing the models' information.
+
+    Return:
+        A tuple containing the model names.
+    """
+
+    return tuple(model["name"] for model in models_info["models"])
+
+
 def main():
-    material_icon("forum")
+    add_logo("assets/logo-small.png", height=150)
+
+    get_material_image("search", width=50)
+
     st.subheader("Semantisch zoeken", divider="orange", anchor=False)
 
-    models_info = ollama.list()
-    available_models = get_allowed_model_names(models_info)
-    missing_models = set(["bakllava:latest", "llava:latest"]) - set(available_models)
-
-    col_1, col_2 = st.columns(2)
-    with col_1.popover("⚙️ Model Management", help="Manage models here"):
-        if not available_models:
-            st.error("No allowed models are available.", icon="😳")
-            model_to_download = st.selectbox(
-                "Select a model to download", ["bakllava:latest", "llava:latest"]
-            )
-            if st.button(f"Download {model_to_download}"):
-                try:
-                    ollama.pull(model_to_download)
-                    st.toast(
-                        f"""Downloaded model: {
-                            model_to_download}""",
-                        icon="✅",
-                    )
-                    st.rerun()
-                except Exception as e:
-                    st.error(
-                        f"""Failed to download model: {
-                            model_to_download}. Error: {str(e)}""",
-                        icon="😳",
-                    )
-        else:
-            if missing_models:
-                model_to_download = st.selectbox(
-                    ":green[**📥 DOWNLOAD MODEL**]", list(missing_models)
-                )
-                if st.button(f":green[Download **_{model_to_download}_**]"):
-                    try:
-                        ollama.pull(model_to_download)
-                        st.toast(
-                            f"""Downloaded model: {
-                                model_to_download}""",
-                            icon="✅",
-                        )
-                        st.rerun()
-                    except Exception as e:
-                        st.error(
-                            f"""Failed to download model: {
-                                model_to_download}. Error: {str(e)}""",
-                            icon="😳",
-                        )
-
-            selected_model = st.selectbox(":red[**⛔️ DELETE MODEL**]", available_models)
-            if st.button(f"Delete **_{selected_model}_**", type="primary"):
-                try:
-                    ollama.delete(selected_model)
-                    st.toast(f"Deleted model: {selected_model}", icon="✅")
-                    st.rerun()
-                except Exception as e:
-                    st.error(
-                        f"""Failed to delete model: {
-                            selected_model}. Error: {str(e)}""",
-                        icon="😳",
-                    )
-
-    if not available_models:
-        return
-
-    selected_model = col_2.selectbox(
-        "Pick a model available locally on your system ↓", available_models, key=1
+    st.info(
+        """Dit is een demo van semantisch zoeken met behulp van de RAG-assistent. 
+Stel een vraag over de documenten in de context en ik zal de meest relevante documenten voor je vinden. \n
+We zoeken in de database stukjes tekst uit de documenten die 'dicht bij' de vraag liggen die je stelt. 
+Stukjes tekst met een **lage score** liggen dichter bij je vraag dan stukjes met een **hoge score**."""
     )
+
+    col_1, col_2, col_3 = st.columns(3)
+
+    with col_1:
+        # set the number of documents to return
+        k = st.number_input(
+            "Geef het aantal documenten op dat je terug wilt hebben",
+            min_value=1,
+            max_value=100,
+            value=3,
+            step=1,
+            key="n_docs",
+        )
+    with col_2:
+        # set the snippet length to show to user
+        l = st.number_input(
+            "Aantal characters dat je wilt zien van de documenten",
+            min_value=10,
+            max_value=250,
+            value=100,
+            step=10,
+            key="snippet_length",
+        )
+    with col_3:
+        # show selectbox to select contexts
+        contexts = get_contexts()
+        # the default 'free_format' context should be removed from the set
+        contexts = [context for context in contexts if context != "free format"]
+
+        selected_context = st.selectbox(
+            "Selecteer een context waarmee je wilt chatten.",
+            contexts,
+            key="context",
+            on_change=set_new_context,
+        )
+
+    # return the retriever
+    if selected_context is not None:
+        db = get_vector_db(selected_context)
 
     if "chats" not in st.session_state:
         st.session_state.chats = []
 
-    if "uploaded_file_state" not in st.session_state:
-        st.session_state.uploaded_file_state = None
+    # col1, col2 = st.columns(2)
 
-    uploaded_file = st.file_uploader(
-        "Upload an image for analysis", type=["png", "jpg", "jpeg"]
-    )
+    # with col1:
+    container2 = st.container(height=400, border=True)
 
-    col1, col2 = st.columns(2)
+    if selected_context is not None:
+        for message in st.session_state.chats:
+            avatar = (
+                get_bot_avatar()
+                if message["role"] == "assistant"
+                else get_human_avatar()
+            )
+            with container2.chat_message(message["role"], avatar=avatar):
+                if message["role"] == "user":
+                    st.markdown(message["content"])
+                else:
+                    st.markdown(message["content"])
 
-    with col2:
-        container1 = st.container(height=500, border=True)
-        with container1:
-            if uploaded_file is not None:
-                st.session_state.uploaded_file_state = uploaded_file.getvalue()
-                image = Image.open(BytesIO(st.session_state.uploaded_file_state))
-                st.image(image, caption="Uploaded image")
+        if user_input := st.chat_input(
+            "Stel een vraag over de documenten in de context...", key="chat_input"
+        ):
+            st.session_state.chats.append({"role": "user", "content": user_input})
+            container2.chat_message("user", avatar=get_human_avatar()).markdown(
+                user_input
+            )
 
-    with col1:
-        container2 = st.container(height=500, border=True)
-
-        if uploaded_file is not None:
-            for message in st.session_state.chats:
-                avatar = "🌋" if message["role"] == "assistant" else "🫠"
-                with container2.chat_message(message["role"], avatar=avatar):
-                    if message["role"] == "user":
-                        st.markdown(message["content"])
-                    else:
-                        st.markdown(message["content"])
-
-            if user_input := st.chat_input(
-                "Question about the image...", key="chat_input"
-            ):
-                st.session_state.chats.append({"role": "user", "content": user_input})
-                container2.chat_message("user", avatar="🫠").markdown(user_input)
-
-                image_base64 = img_to_base64(image)
-                API_URL = "http://localhost:11434/api/generate"
-                headers = {
-                    "Content-Type": "application/json",
-                    "Accept": "application/json",
-                }
-                data = {
-                    "model": selected_model,
-                    "prompt": user_input,
-                    "images": [image_base64],
-                }
-
-                with container2.chat_message("assistant", avatar="🌋"):
-                    with st.spinner(":blue[processing...]"):
-                        response = requests.post(API_URL, json=data, headers=headers)
-                    if response.status_code == 200:
-                        response_lines = response.text.split("\n")
-                        llava_response = ""
-                        for line in response_lines:
-                            if line.strip():  # Skip empty lines
-                                try:
-                                    response_data = json.loads(line)
-                                    if "response" in response_data:
-                                        llava_response += response_data["response"]
-                                except json.JSONDecodeError:
-                                    pass  # Skip invalid JSON lines
-                        if llava_response:
-                            st.markdown(llava_response)
-                        else:
-                            st.error(
-                                f"""No response received from {
-                                    selected_model}.""",
-                                icon="😳",
-                            )
-                    else:
-                        st.error(
-                            f"""Failed to get a response from {
-                                selected_model}.""",
-                            icon="😳",
-                        )
-
-                st.session_state.chats.append(
-                    {"role": "assistant", "content": llava_response}
+            with container2.chat_message("assistant", avatar=get_bot_avatar()):
+                with st.spinner(":blue[processing...]"):
+                    response = db.similarity_search_with_score(
+                        user_input, k=st.session_state.n_docs, fetch_k=100
+                    )
+                    "De database geeft de volgende resultaten"
+            # returns a set of relevant documents
+            l = st.session_state.snippet_length
+            for r in response:
+                doc = r[0]
+                score = r[1]
+                msg = f"""Met score {score:.1f} op pagina {doc.metadata['page']} uit {doc.metadata['source']} vind ik dit : {doc.page_content[0:l]} ...  """
+                container2.chat_message("assistant", avatar=get_bot_avatar()).markdown(
+                    msg, help=doc.page_content
                 )
+
+                # append to chat history
+                st.session_state.chats.append(
+                    {
+                        "role": "assistant",
+                        "content": msg,
+                    }
+                )
+
+    # with col2:
+    #     container1 = st.container(height=500, border=True)
+    #     with container1:
+    #         # show document snippets
+    #         st.info("Document snippets go here")
 
 
 if __name__ == "__main__":

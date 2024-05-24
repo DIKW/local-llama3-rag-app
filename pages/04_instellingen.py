@@ -1,7 +1,7 @@
 import streamlit as st
 import ollama
 from time import sleep
-from utilities.icon import material_icon
+from utilities.icon import get_material_image, material_icon
 
 from streamlit_extras.app_logo import add_logo
 
@@ -12,11 +12,12 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-add_logo("assets/logo-small.png", height=100)
-
 
 def main():
-    material_icon("instellingen")
+    add_logo("assets/logo-small.png", height=150)
+    # material_icon("settings")
+    get_material_image("settings", width=50)
+
     st.subheader("Model Management", divider="orange", anchor=False)
 
     st.subheader("Download Models", anchor=False)

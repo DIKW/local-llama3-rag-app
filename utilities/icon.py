@@ -1,5 +1,7 @@
 import streamlit as st
 
+from PIL import Image
+
 
 def page_icon(emoji: str):
     """
@@ -11,7 +13,7 @@ def page_icon(emoji: str):
         None
     """
 
-    st.write(
+    return st.write(
         f'<span style="font-size: 78px; line-height: 1">{emoji}</span>',
         unsafe_allow_html=True,
     )
@@ -27,10 +29,24 @@ def material_icon(name: str):
         None
     """
 
-    st.write(
+    return st.write(
         f'<span class="material-symbols-outlined">{name}</span>',
         unsafe_allow_html=True,
     )
+
+
+def get_material_image(name: str, width: int = None):
+    """
+    Shows a Material icon.
+
+    :param name: The name of the Material icon.
+
+    Returns:
+        None
+    """
+    image = Image.open(f"./assets/{name}.png")
+
+    return st.image(image, width=width)
 
 
 def get_bot_avatar():
