@@ -56,12 +56,23 @@ def main():
         st.session_state.messages = []
         st.session_state.initialized = True
 
+    # try to connect to ollama server if successful show available models
+    # if not show a warning and a button to go to settings
+
+    available_models = None
+
+    try:
+        models_info = ollama.list()
+        available_models = extract_model_names(models_info)
+    except Exception as e:
+        st.warning(
+            f"Could not connect to Ollama server, please check your internet connection or try again later. Error: {e}",
+            icon="⚠️",
+        )
+
     col1, col2 = st.columns(2)
 
     with col1:
-
-        models_info = ollama.list()
-        available_models = extract_model_names(models_info)
 
         if available_models:
             selected_model = st.selectbox(
@@ -149,11 +160,12 @@ def main():
 
                 else:
                     with st.spinner("model working..."):
+                        # TODO use invoke or stream
                         stream = qa_client.stream(
                             {"question": prompt}
                         )  # , callback=callback)
                         # print(response)
-                    response = st.write_stream(stream)
+                    response = st.write_stream(stream)  # or st.write_stream(stream)
 
             # container
             st.session_state.messages.append({"role": "assistant", "content": response})

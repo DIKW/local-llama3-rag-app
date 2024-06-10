@@ -5,7 +5,12 @@ from PIL import Image
 from io import BytesIO
 import json
 import ollama
-from utilities.icon import get_material_image, material_icon, get_bot_avatar, get_human_avatar
+from utilities.icon import (
+    get_material_image,
+    material_icon,
+    get_bot_avatar,
+    get_human_avatar,
+)
 
 from streamlit_extras.app_logo import add_logo
 
@@ -35,7 +40,11 @@ def get_allowed_model_names(models_info: dict) -> tuple:
     """
     Returns a tuple containing the names of the allowed models.
     """
-    allowed_models = ["bakllava:latest", "llava:latest"]
+    allowed_models = [
+        "bakllava:latest",
+        "llava:latest",
+        "hub/dwbranson/image-analysis-using-llava-v5:latest",
+    ]
     return tuple(
         model
         for model in allowed_models
@@ -49,10 +58,11 @@ def main():
     # material_icon("forum")
     get_material_image("forum", width=50)
 
-    st.subheader("LLaVA 1.6 Playground", divider="orange", anchor=False)
+    st.subheader("Multimodal Playground", divider="orange", anchor=False)
 
     models_info = ollama.list()
     available_models = get_allowed_model_names(models_info)
+
     missing_models = set(["bakllava:latest", "llava:latest"]) - set(available_models)
 
     col_1, col_2 = st.columns(2)
