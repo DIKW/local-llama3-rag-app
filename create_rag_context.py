@@ -6,7 +6,8 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 # Laad de documenten uit de data directory waarvoor je een context wil maken
 # loader = DirectoryLoader(path="./data", glob="./*.pdf", loader_cls=PyPDFLoader)
-loader = PyPDFLoader("./data/Rapport-PEFD-Blind-voor-mens-en-recht-26022024.pdf")
+#loader = PyPDFLoader("./data/Rapport-PEFD-Blind-voor-mens-en-recht-26022024.pdf")
+loader = PyPDFLoader("./data/BIC-4.0_2023_download.pdf")
 
 documents = loader.load()
 
@@ -22,4 +23,4 @@ oembed = OllamaEmbeddings(base_url="http://pcloud:11434", model="nomic-embed-tex
 db = FAISS.from_documents(documents=all_splits, embedding=oembed)
 
 # db = FAISS.from_documents(docs, OllamaEmbeddings(model="llama3"))
-db.save_local("contexts/toeslagen_affaire")
+db.save_local("contexts/informatie_beveiliging_corporaties")

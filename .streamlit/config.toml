@@ -1,0 +1,11 @@
+[theme]
+base="dark"
+primaryColor="#f7a800"
+backgroundColor="#03286a"
+secondaryBackgroundColor="#003e88"
+
+[theme-dikw]
+base="dark"
+primaryColor="#f7a800"
+backgroundColor="#03286a"
+secondaryBackgroundColor="#003e88"

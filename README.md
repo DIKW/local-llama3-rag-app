@@ -14,4 +14,4 @@ Source this environemnt
 
 Install requirements
 
-    pip3 install streamlit streamlit-extras ollama langchain langchain_community bs4 chromadb pypdf
+    pip3 install streamlit streamlit-extras ollama langchain langchain_community bs4 chromadb pypdf faiss-gpu openai
