@@ -23,6 +23,10 @@ See official documentation [here](https://hub.docker.com/r/ollama/ollama)
 
 Pull and run the ollama docker container
 
+    docker run -d --gpus=all -v ollama:/root/.ollama -p 11434:11434 --name ollama ollama/ollama
+
+Met meer verbose debug en expliciete tag
+
     docker run -d -e CUDA_VISIBLE_DEVICES=0 -e OLLAMA_DEBUG=1 --gpus=all -v ollama:/root/.ollama -p 11434:11434 --name ollama ollama/ollama:0.1.34
 
 Run the webUI container to manage models, prompts and settings. Advise is ti run both containers seperately, so ollama service can we run and redistributed elsewhere as-is.
